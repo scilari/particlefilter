@@ -1,0 +1,37 @@
+import mill._, scalalib._
+import mill.scalalib.publish._
+
+import $file.spatialsearch_dotty.build
+import $file.mhpf.build
+
+object particlefilter extends ScalaModule /* with PublishModule */ {
+  def scalaVersion = "3.0.2"
+
+  def moduleDeps = Seq(spatialsearch_dotty.build.spatialsearch, mhpf.build.mhpf)
+
+  override def ivyDeps = Agg(
+    ivy"com.lihaoyi::os-lib:0.7.8"
+  )
+
+  def publishVersion = "0.0.1"
+  def pomSettings = PomSettings(
+    description = "Scala Particle Filter library",
+    organization = "com.scilari",
+    url = "https://github.com/scilari/particlefilter",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("scilari", "particlefilter"),
+    developers = Seq(
+      Developer("scilari", "Ilari Vallivaara", "https://github.com/scilari")
+    )
+  )
+
+  object test extends Tests with TestModule.Utest with TestModule.ScalaTest {
+    override def ivyDeps =
+      Agg(
+        ivy"com.lihaoyi::utest::0.7.10",
+        ivy"org.scalatest::scalatest:3.2.10",
+        ivy"org.scalacheck::scalacheck:1.15.4"
+      )
+
+  }
+}
