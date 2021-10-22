@@ -50,8 +50,18 @@ class Cloud[E](
     particles = newParticles.toSeq
   }
 
+  // TODO: move these to util object
   def meanPose: Pose =
     Pose.weightedMean(particles.map { _.pose }, weights.map { _.toFloat })
+
+  def deviation: Double = {
+    val m = meanPose.position
+    val ws = weights
+    val d2s = for ((p, w) <- particles.map { _.pose.position }.zip(ws)) yield {
+      w * p.distanceSq(m)
+    }
+    math.sqrt(d2s.sum / n).toFloat
+  }
 
   def roughen(pose: Pose): Unit = ???
 }
