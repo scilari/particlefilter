@@ -1,11 +1,24 @@
 package com.scilari.particlefilter
 
+import scala.collection.mutable.ArrayBuffer
+
 class Particle[E](
     val pose: Pose,
-    val id: Int,
-    val time: Long = 0,
-    val data: Option[E] = None
+    val data: E = null
 ) {
-  def copy = Particle(this.pose.copy, this.id, this.time, this.data)
-  override def toString: String = s"Particle $id at ${pose.toString}"
+  val children = ArrayBuffer[Particle[E]]()
+
+  def copy(copyData: E => E = (e: E) => e) =
+    Particle(pose.copy, copyData(data))
+
+  override def toString: String = s"Particle at ${pose.toString}"
+}
+
+object Particle {
+  def breed[E](p: Particle[E]): Seq[Particle[E]] = {
+    val children = p.children.toSeq
+    p.children.clear()
+    children
+  }
+
 }
