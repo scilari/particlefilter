@@ -7,6 +7,7 @@ import com.scilari.math.StatsUtils._
 import com.scilari.geometry.models.{Float2, AABB}
 import com.scilari.particlefilter.mhpf.MHPF
 import scala.collection.mutable.ArraySeq
+import scala.collection.mutable.ArrayBuffer
 
 class CloudTests extends AnyFlatSpec with should.Matchers {
 
@@ -44,6 +45,8 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
   }
 
   it should "be able to produce sine shape using measurements" in {
+    type H = ArrayBuffer[Pose]
+    type P = Particle[H]
     val particleCount = 1000
     val sinDataX = (0 until 100)
     val sinData = sinDataX
@@ -61,27 +64,48 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       -0.5 * d2 / (dev * dev)
     }
 
-    val mhpf = MHPF[Particle[Any]](
+    val mhpf = MHPF[P](
       particleCount,
       Seq(
-        (likelihood(_), (p: Particle[_]) => true)
+        (likelihood(_), (p: P) => true)
       )
     )
 
+    val merge = (a: P, b: P) => {
+      Particle(b.pose, a.data ++ b.data)
+    }
+
+    val breed = (p: P) => Particle(p.pose.copy, new H())
+
     val motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f)
-    val cloud = Cloud[Any](particleCount, motionModel, mhpf)
+    val rootParticle = new P(Pose.zero, new H())
+    val cloud = Cloud[H](
+      particleCount,
+      motionModel,
+      mhpf,
+      rootParticle,
+      breed,
+      merge
+    )
 
     val (initialPose, controls) = DataUtils.positionsToControls(controlPoints.toSeq)
     cloud.moveTo(initialPose)
 
     val estimates = for ((data, control) <- (sinData zip controls)) yield {
       currentPosition = data
+      cloud.particles.foreach { p => p.data += p.pose.copy }
       cloud.updateWeights()
       cloud.move(control)
       cloud.resampleIfNeeded()
 
-      Thread.sleep(100)
+      // Thread.sleep(100)
       DataUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
+
+      val leaf = cloud.particleAncestryTree.leaves(0)
+      val ancestors = leaf.ancestors
+      val history: ArrayBuffer[Pose] = ancestors.map { _.data }.reduce(merge).data
+
+      DataUtils.pointsToFile(history.map { _.position }.toIndexedSeq, "history.csv")
 
       val meanPose = CloudStats.meanPose(cloud)
       println(s"Correct: ${currentPosition}")
@@ -93,11 +117,11 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "stay inside box" in {
+  ignore should "stay inside box" in {
     val particleCount = 1000
     val bb = AABB.fromMinMax(0, -4, 100, 4)
 
-    DataUtils.pointsToFile(bb.corners, "ground_truth.csv")
+    DataUtils.pointsToFile(bb.corners.toIndexedSeq, "ground_truth.csv")
 
     val controlPoints = (0 until 100).map { i => Float2(i.toFloat, 0) }
 
@@ -106,7 +130,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       if (bb.contains(p.pose.position)) 0 else -20
     }
 
-    val mhpf = MHPF[Particle[Any]](
+    val mhpf = MHPF[Particle[Null]](
       particleCount,
       Seq(
         (likelihood(_), (p: Particle[_]) => true)
@@ -114,7 +138,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     )
 
     val motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f)
-    val cloud = Cloud[Any](particleCount, motionModel, mhpf)
+    val cloud = Cloud[Null](particleCount, motionModel, mhpf)
 
     val (initialPose, controls) = DataUtils.positionsToControls(controlPoints.toSeq)
     cloud.moveTo(initialPose)
@@ -124,7 +148,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       cloud.move(control)
       cloud.resampleIfNeeded()
 
-      Thread.sleep(100)
+      // Thread.sleep(100)
       DataUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
 
       val meanPose = CloudStats.meanPose(cloud)
@@ -134,7 +158,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
 
     }
 
-    DataUtils.pointsToFile(estimates, "points.csv")
+    DataUtils.pointsToFile(estimates.toIndexedSeq, "points.csv")
 
   }
 
