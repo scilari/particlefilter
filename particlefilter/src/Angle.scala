@@ -36,7 +36,7 @@ object Angle {
     aa
   }
 
-  def weightedMean(angles: Seq[Angle], ws: Seq[Float]): Float = {
+  def weightedMean(angles: Iterable[Angle], ws: Iterable[Float]): Float = {
     ArrayUtils.weightedMeanAngle(angles.map { toFloat }.toArray, ws.toArray)
   }
 
