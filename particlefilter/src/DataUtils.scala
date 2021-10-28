@@ -11,7 +11,7 @@ object DataUtils {
   }
 
   // Note: the first control contains the translation and rotation from origo to first position
-  def positionsToControls(ps: Seq[Float2]): (Pose, Seq[Pose]) = {
+  def positionsToControls(ps: IndexedSeq[Float2]): (Pose, Seq[Pose]) = {
     var angleCurr = angleBetween(ps(0), ps(1))
     val initialPose = Pose(ps(0), angleCurr)
     val controls = ArrayBuffer[Pose](Pose(0, 0, 0))
@@ -28,7 +28,7 @@ object DataUtils {
     (initialPose, controls.toSeq)
   }
 
-  def pointsToFile(ps: IndexedSeq[Float2], fileName: String): Unit = {
+  def pointsToFile(ps: Iterable[Float2], fileName: String): Unit = {
     val wd = os.pwd / "visualization" / "input"
     val header = "x,y\n"
     val content = ps.map { p => s"${p.x},${p.y}\n" }.mkString("")
