@@ -83,10 +83,10 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       Thread.sleep(100)
       DataUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
 
+      val meanPose = CloudStats.meanPose(cloud)
       println(s"Correct: ${currentPosition}")
-      println(s"Cloud: ${cloud.meanPose}")
-      cloud.meanPose.position
-
+      println(s"Cloud: $meanPose")
+      meanPose.position
     }
 
     DataUtils.pointsToFile(estimates, "points.csv")
@@ -127,9 +127,10 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       Thread.sleep(100)
       DataUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
 
+      val meanPose = CloudStats.meanPose(cloud)
       println(s"Correct: ${currentPosition}")
-      println(s"Cloud: ${cloud.meanPose}")
-      cloud.meanPose.position
+      println(s"Cloud: $meanPose")
+      meanPose.position
 
     }
 
