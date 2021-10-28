@@ -28,7 +28,7 @@ object DataUtils {
     (initialPose, controls.toSeq)
   }
 
-  def pointsToFile(ps: Seq[Float2], fileName: String): Unit = {
+  def pointsToFile(ps: IndexedSeq[Float2], fileName: String): Unit = {
     val wd = os.pwd / "visualization" / "input"
     val header = "x,y\n"
     val content = ps.map { p => s"${p.x},${p.y}\n" }.mkString("")

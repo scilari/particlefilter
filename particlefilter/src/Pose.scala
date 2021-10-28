@@ -55,8 +55,9 @@ object Pose {
   def apply(x: Float, y: Float, angle: Float): Pose = new Pose(Float2(x, y), Angle(angle))
   def apply(that: Pose): Pose = Pose(that.position.x, that.position.y, that.heading)
   def apply(p: Float2, a: Float = 0f): Pose = new Pose(p, Angle(a))
+  def zero: Pose = Pose(Float2(0, 0), 0)
 
-  def weightedMean(ps: Seq[Pose], ws: Seq[Float]): Pose = {
+  def weightedMean(ps: Iterable[Pose], ws: Iterable[Float]): Pose = {
     val x = ArrayUtils.weightedMean(ps.map { _.position.x }.toArray, ws.toArray)
     val y = ArrayUtils.weightedMean(ps.map { _.position.y }.toArray, ws.toArray)
     val a = Angle.weightedMean(ps.map { _.heading }, ws)
