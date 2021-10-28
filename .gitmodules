@@ -4,3 +4,6 @@
 [submodule "mhpf"]
 	path = mhpf
 	url = https://github.com/scilari/mhpf
+[submodule "ancestry"]
+	path = ancestry
+	url = https://github.com/scilari/ancestry
