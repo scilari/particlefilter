@@ -3,11 +3,16 @@ import mill.scalalib.publish._
 
 import $file.spatialsearch_dotty.build
 import $file.mhpf.build
+import $file.ancestry.build
 
 object particlefilter extends ScalaModule /* with PublishModule */ {
   def scalaVersion = "3.0.2"
 
-  def moduleDeps = Seq(spatialsearch_dotty.build.spatialsearch, mhpf.build.mhpf)
+  def moduleDeps = Seq(
+    spatialsearch_dotty.build.spatialsearch,
+    mhpf.build.mhpf,
+    ancestry.build.ancestry
+  )
 
   override def ivyDeps = Agg(
     ivy"com.lihaoyi::os-lib:0.7.8"
