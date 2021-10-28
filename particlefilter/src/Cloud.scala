@@ -1,19 +1,27 @@
 package com.scilari.particlefilter
 
 import com.scilari.particlefilter.mhpf.MHPF
+import com.scilari.ancestry.AncestryTree
 import scala.collection.mutable.ArrayBuffer
+import com.scilari.ancestry.core.Tree
 
 class Cloud[E](
     val n: Int,
     val motionModel: MotionModel,
     val mhpf: MHPF[Particle[E]] = null,
-    initialPose: Pose = Pose(0, 0, 0),
-    initialData: Option[E] = None,
+    val rootParticle: Particle[E] = Particle(Pose.zero, null),
+    val breedParticle: Particle[E] => Particle[E] = (a: Particle[E]) => a,
+    val mergeParticles: (Particle[E], Particle[E]) => Particle[E] =
+      (a: Particle[E], b: Particle[E]) => a,
     resampleRatio: Double = 0.5
 ) {
-  var particles = Seq.tabulate(n) { id =>
-    Particle[E](initialPose.copy, id, 0, initialData)
-  }
+
+  var particleAncestryTree: Tree[Particle[E]] = AncestryTree.fromElements(
+    rootParticle,
+    Seq.fill(n)(rootParticle.copy())
+  )
+
+  def particles = particleAncestryTree.leaves.map { _.data }.toArray
 
   def move(control: Pose): Unit = {
     particles.foreach { p => p.pose.move(motionModel.sampleControl(control)) }
@@ -21,9 +29,9 @@ class Cloud[E](
 
   def moveTo(pose: Pose): Unit = particles.foreach { _.pose.moveTo(pose) }
 
-  def weights: Seq[Double] = mhpf.weights
+  def weights: Array[Double] = mhpf.weights.toArray
 
-  def updateWeights(): Unit = mhpf.computeWeights(particles)
+  def updateWeights(): Unit = mhpf.computeWeights(particles.toIndexedSeq)
 
   def nEff: Double = 1.0 / weights.map { w => w * w }.sum
   def nEffRatio: Double = nEff / n
@@ -35,19 +43,18 @@ class Cloud[E](
     }
   }
 
-  def resample(weights: Seq[Double]) = {
-    val step = 1.0 / n
-    var wSum = scala.util.Random.between(0, step)
-    val cs = com.scilari.math.ArrayUtils.cumsum(weights.toArray)
-    var pIx = 0
-    val newParticles = ArrayBuffer[Particle[E]]()
-    while (wSum < 1.0) {
-      if (cs(pIx) >= wSum) {
-        newParticles += particles(pIx).copy
-        wSum += step
-      } else pIx += 1
-    }
-    particles = newParticles.toSeq
+  def resample(weights: Array[Double]) = {
+    val indices = Resampling.resampleIndices(weights)
+    val particles = this.particles
+    indices.foreach { i => particles(i).children += breedParticle(particles(i)) }
+
+    particleAncestryTree = particleAncestryTree
+      .nextGeneration(
+        Particle.breed[E](_),
+        mergeParticles(_, _)
+      )
+      .get
+
   }
 
   def roughen(pose: Pose): Unit = ???
