@@ -18,7 +18,7 @@ class Cloud[E](
 
   var particleAncestryTree: Tree[Particle[E]] = AncestryTree.fromElements(
     rootParticle,
-    Seq.fill(n)(rootParticle.copy())
+    Seq.fill(n)(breedParticle(rootParticle))
   )
 
   def particles = particleAncestryTree.leaves.map { _.data }.toArray
