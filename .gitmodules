@@ -4,3 +4,6 @@
 [submodule "spatialsearch_dotty"]
 	path = spatialsearch_dotty
 	url = https://github.com/scilari/spatialsearch_dotty
+[submodule "ancestry"]
+	path = ancestry
+	url = https://github.com/scilari/ancestry
