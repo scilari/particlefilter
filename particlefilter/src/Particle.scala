@@ -15,8 +15,8 @@ class Particle[E](
 }
 
 object Particle {
-  def breed[E](p: Particle[E]): Seq[Particle[E]] = {
-    val children = p.children.toSeq
+  def breed[E](p: Particle[E]): List[Particle[E]] = {
+    val children = p.children.toList
     p.children.clear()
     children
   }
