@@ -24,10 +24,10 @@ class Cloud[E](
   def particles = particleAncestryTree.leavesCached.view.map { _.data }
 
   def move(control: Pose): Unit = {
-    particles.foreach { p => 
-      val scaledControl = Pose(control.position*p.scale, control.a)
-      p.pose.move(motionModel.sampleControl(control))
-       }
+    particles.foreach { p =>
+      val scaledControl = Pose(control.position * p.scale, control.a)
+      p.pose.move(motionModel.sampleControl(scaledControl))
+    }
   }
 
   def moveTo(pose: Pose): Unit = particles.foreach { _.pose.moveTo(pose) }
@@ -39,11 +39,12 @@ class Cloud[E](
   def nEff: Double = 1.0 / weights.map { w => w * w }.sum
   def nEffRatio: Double = nEff / n
 
-  def resampleIfNeeded() = {
+  def resampleIfNeeded(): Boolean = {
     if (nEffRatio < resampleRatio) {
       resample(weights)
       mhpf.reset()
-    }
+      true
+    } else false
   }
 
   def resample(weights: Array[Double]) = {
@@ -60,5 +61,4 @@ class Cloud[E](
 
   }
 
-  def roughen(pose: Pose): Unit = ???
 }
