@@ -72,13 +72,13 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     )
 
     val merge = (a: P, b: P) => {
-      Particle(b.pose, a.data ++ b.data)
+      Particle(b.pose, data = a.data ++ b.data)
     }
 
-    val breed = (p: P) => Particle(p.pose.copy, new H())
+    val breed = (p: P) => Particle(p.pose.copy, data = new H())
 
     val motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f)
-    val rootParticle = new P(Pose.zero, new H())
+    val rootParticle = new P(Pose.zero, data = new H())
     val cloud = Cloud[H](
       particleCount,
       motionModel,

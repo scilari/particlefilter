@@ -9,9 +9,8 @@ class Cloud[E](
     val n: Int,
     val motionModel: MotionModel,
     val mhpf: MHPF[Particle[E]] = null,
-    val rootParticle: Particle[E] = Particle(Pose.zero, null),
-    val breedParticle: Particle[E] => Particle[E] = (a: Particle[E]) =>
-      Particle(a.pose.copy, a.data),
+    val rootParticle: Particle[E] = Particle(),
+    val breedParticle: Particle[E] => Particle[E] = (p: Particle[E]) => p.copy(),
     val mergeParticles: (Particle[E], Particle[E]) => Particle[E] =
       (a: Particle[E], b: Particle[E]) => a,
     resampleRatio: Double = 0.5
@@ -25,7 +24,10 @@ class Cloud[E](
   def particles = particleAncestryTree.leavesCached.view.map { _.data }
 
   def move(control: Pose): Unit = {
-    particles.foreach { p => p.pose.move(motionModel.sampleControl(control)) }
+    particles.foreach { p => 
+      val scaledControl = Pose(control.position*p.scale, control.a)
+      p.pose.move(motionModel.sampleControl(control))
+       }
   }
 
   def moveTo(pose: Pose): Unit = particles.foreach { _.pose.moveTo(pose) }
