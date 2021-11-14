@@ -5,20 +5,17 @@ import com.scilari.ancestry.AncestryTree
 import scala.collection.mutable.ArrayBuffer
 import com.scilari.ancestry.core.Tree
 
-class Cloud[E](
+class Cloud[P <: Particle[P]](
     val n: Int,
     val motionModel: MotionModel,
-    val mhpf: MHPF[Particle[E]] = null,
-    val rootParticle: Particle[E] = Particle(),
-    val breedParticle: Particle[E] => Particle[E] = (p: Particle[E]) => p.copy(),
-    val mergeParticles: (Particle[E], Particle[E]) => Particle[E] =
-      (a: Particle[E], b: Particle[E]) => a,
+    val mhpf: MHPF[P] = null,
+    val rootParticle: P,
     resampleRatio: Double = 0.5
 ) {
 
-  var particleAncestryTree: Tree[Particle[E]] = AncestryTree.fromElements(
+  var particleAncestryTree: Tree[P] = AncestryTree.fromElements(
     rootParticle,
-    List.fill(n)(breedParticle(rootParticle))
+    List.fill(n)(rootParticle.breed)
   )
 
   def particles = particleAncestryTree.leavesCached.view.map { _.data }
@@ -50,12 +47,12 @@ class Cloud[E](
   def resample(weights: Array[Double]) = {
     val indices = Resampling.resampleIndices(weights)
     val particles = this.particles
-    indices.foreach { i => particles(i).children += breedParticle(particles(i)) }
+    indices.foreach { i => particles(i).children += particles(i).breed }
 
     particleAncestryTree = particleAncestryTree
       .nextGeneration(
-        Particle.breed[E](_),
-        mergeParticles(_, _)
+        Particle.breed(_),
+        Particle.merge(_, _)
       )
       .get
 

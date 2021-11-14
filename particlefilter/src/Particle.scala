@@ -2,24 +2,29 @@ package com.scilari.particlefilter
 
 import scala.collection.mutable.ArrayBuffer
 
-class Particle[E](
+abstract class Particle[T](
     val pose: Pose = Pose.zero,
-    var scale: Float = 1.0f,
-    val data: E = null
+    var scale: Float = 1.0f
 ) {
-  val children = ArrayBuffer[Particle[E]]()
+  Self: T =>
+  val children = ArrayBuffer[T]()
 
-  def copy(copyData: E => E = (e: E) => e) =
-    Particle(pose.copy, scale, copyData(data))
+  // Tell how to make copy for the next generation
+  def breed: T
+
+  // How to merge paticle's data to its parent
+  def merge(parent: T): T
 
   override def toString: String = s"Particle at ${pose.toString}"
 }
 
 object Particle {
-  def breed[E](p: Particle[E]): List[Particle[E]] = {
+  def breed[P <: Particle[P]](p: P): List[P] = {
     val children = p.children.toList
     p.children.clear()
     children
   }
+
+  def merge[P <: Particle[P]](child: P, parent: P): P = child.merge(parent)
 
 }

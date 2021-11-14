@@ -8,12 +8,23 @@ import com.scilari.geometry.models.{Float2, AABB}
 import com.scilari.particlefilter.mhpf.MHPF
 import scala.collection.mutable.ArraySeq
 import scala.collection.mutable.ArrayBuffer
+import org.scalacheck.Test
 
 class CloudTests extends AnyFlatSpec with should.Matchers {
 
+  class TestParticle(pose: Pose = Pose.zero) extends Particle[TestParticle](pose) {
+    val history = ArrayBuffer[Pose]()
+
+    override def breed = TestParticle(pose.copy)
+    override def merge(parent: TestParticle) = {
+      parent.history ++= history
+      parent
+    }
+  }
+
   "ParticleFilter" should "move diagonally" in {
     val motionModel = MotionModel(0.1, 0.1)
-    val cloud = Cloud(10, motionModel)
+    val cloud = Cloud(10, motionModel, rootParticle = TestParticle())
 
     for (t <- 0 until 5) {
       cloud.move(Pose(1f, 0.2f, 0.0f * com.scilari.math.FloatMath.TwoPi))
@@ -31,7 +42,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
 
   it should "move a circle" in {
     val motionModel = MotionModel(0.01, 0.01)
-    val cloud = Cloud(10, motionModel)
+    val cloud = Cloud(10, motionModel, rootParticle = TestParticle())
 
     for (t <- 0 until 10) {
       cloud.move(Pose(1f, 0f, 0.1f * com.scilari.math.FloatMath.TwoPi))
@@ -45,8 +56,6 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
   }
 
   it should "be able to produce sine shape using measurements" in {
-    type H = ArrayBuffer[Pose]
-    type P = Particle[H]
     val particleCount = 1000
     val sinDataX = (0 until 100)
     val sinData = sinDataX
@@ -64,28 +73,17 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       -0.5 * d2 / (dev * dev)
     }
 
-    val mhpf = MHPF[P](
+    val mhpf = MHPF[TestParticle](
       particleCount,
-      Seq(
-        (likelihood(_), (p: P) => true)
-      )
+      IndexedSeq((likelihood(_), (p: TestParticle) => true))
     )
 
-    val merge = (a: P, b: P) => {
-      Particle(b.pose, data = a.data ++ b.data)
-    }
-
-    val breed = (p: P) => Particle(p.pose.copy, data = new H())
-
     val motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f)
-    val rootParticle = new P(Pose.zero, data = new H())
-    val cloud = Cloud[H](
+    val cloud = Cloud[TestParticle](
       particleCount,
       motionModel,
       mhpf,
-      rootParticle,
-      breed,
-      merge
+      rootParticle = TestParticle()
     )
 
     val (initialPose, controls) = DataUtils.positionsToControls(controlPoints.toSeq)
@@ -93,7 +91,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
 
     val estimates = for ((data, control) <- (sinData zip controls)) yield {
       currentPosition = data
-      cloud.particles.foreach { p => p.data += p.pose.copy }
+      cloud.particles.foreach { p => p.history += p.pose.copy }
       cloud.updateWeights()
       cloud.move(control)
       cloud.resampleIfNeeded()
@@ -103,7 +101,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
 
       val leaf = cloud.particleAncestryTree.leaves(0)
       val ancestors = leaf.ancestors
-      val history: ArrayBuffer[Pose] = ancestors.map { _.data }.reduce(merge).data
+      val history: ArrayBuffer[Pose] = ancestors.map { _.data }.reduce(Particle.merge).history
 
       DataUtils.pointsToFile(history.map { _.position }.toIndexedSeq, "history.csv")
 
@@ -126,19 +124,17 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     val controlPoints = (0 until 100).map { i => Float2(i.toFloat, 0) }
 
     var currentPosition: Float2 = Float2.zero
-    def likelihood(p: Particle[_]): Double = {
+    def likelihood(p: TestParticle): Double = {
       if (bb.contains(p.pose.position)) 0 else -20
     }
 
-    val mhpf = MHPF[Particle[Null]](
+    val mhpf = MHPF[TestParticle](
       particleCount,
-      Seq(
-        (likelihood(_), (p: Particle[_]) => true)
-      )
+      IndexedSeq((likelihood(_), (p: Particle[_]) => true))
     )
 
     val motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f)
-    val cloud = Cloud[Null](particleCount, motionModel, mhpf)
+    val cloud = Cloud[TestParticle](particleCount, motionModel, mhpf, rootParticle = TestParticle())
 
     val (initialPose, controls) = DataUtils.positionsToControls(controlPoints.toSeq)
     cloud.moveTo(initialPose)
