@@ -13,6 +13,8 @@ class Cloud[P <: Particle[P]](
     resampleRatio: Double = 0.5
 ) {
 
+  var updateCounter = 0
+
   var particleAncestryTree: Tree[P] = AncestryTree.fromElements(
     rootParticle,
     List.fill(n)(rootParticle.breed)
@@ -31,7 +33,10 @@ class Cloud[P <: Particle[P]](
 
   def weights: Array[Double] = mhpf.weights.toArray
 
-  def updateWeights(): Unit = mhpf.computeWeights(particles.toIndexedSeq)
+  def updateWeights(): Unit = {
+    mhpf.computeWeights(particles.toIndexedSeq)
+    updateCounter += 1
+  }
 
   def nEff: Double = 1.0 / weights.map { w => w * w }.sum
   def nEffRatio: Double = nEff / n
