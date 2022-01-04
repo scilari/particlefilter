@@ -12,7 +12,7 @@ abstract class Particle[T](
   // Tell how to make copy for the next generation
   def breed: T
 
-  // How to merge paticle's data to its parent
+  // How to merge particle's data to its parent
   def merge(parent: T): T
 
   override def toString: String = s"Particle at ${pose.toString}"
