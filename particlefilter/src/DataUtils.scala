@@ -14,18 +14,16 @@ object DataUtils {
   def positionsToControls(ps: IndexedSeq[Float2]): (Pose, Seq[Pose]) = {
     var angleCurr = angleBetween(ps(0), ps(1))
     val initialPose = Pose(ps(0), angleCurr)
-    val controls = ArrayBuffer[Pose](Pose(0, 0, 0))
-    for (i <- 0 until (ps.size - 1)) {
-      val pCurr = ps(i)
-      val pNext = ps(i + 1)
-      val angleNext = angleBetween(pCurr, pNext)
+    val middleControls = ps.sliding(3, 1).map { case Seq(p0, p1, p2) =>
+      val angleNext = angleBetween(p1, p2)
       val angleDiff = Angle.angleDiff(angleNext, angleCurr)
       angleCurr = angleNext
-      controls.append(
-        Pose(pCurr.distance(pNext), 0, angleDiff)
-      )
+      Pose(p0.distance(p1), 0, angleDiff)
     }
-    (initialPose, controls.toSeq)
+    val lastPose = Pose(ps.last.distance(ps(ps.size - 2)), 0f, 0f)
+    val controls = Seq(Pose.zero) ++ middleControls ++ Seq(lastPose)
+
+    (initialPose, controls)
   }
 
   def pointsToFile(ps: Iterable[Float2], fileName: String): Unit = {
