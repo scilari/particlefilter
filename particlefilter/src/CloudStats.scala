@@ -2,10 +2,10 @@ package com.scilari.particlefilter
 
 object CloudStats {
 
-  def meanPose(cloud: Cloud[_]): Pose =
+  def meanPose(cloud: Cloud[?]): Pose =
     Pose.weightedMean(cloud.particles.map { _.pose }, cloud.weights.map { _.toFloat })
 
-  def deviation(cloud: Cloud[_]): Double = {
+  def deviation(cloud: Cloud[?]): Double = {
     val m = meanPose(cloud).position
     val ws = cloud.weights
     val d2s = for ((p, w) <- cloud.particles.map { _.pose.position }.zip(ws)) yield {
