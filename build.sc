@@ -5,8 +5,8 @@ import $file.spatialsearch_dotty.build
 import $file.mhpf.build
 import $file.ancestry.build
 
-object particlefilter extends ScalaModule /* with PublishModule */ {
-  def scalaVersion = "3.0.2"
+object particlefilter extends ScalaModule with ScalaJSModule /* with PublishModule */ {
+  def scalaVersion = "3.3.2"
 
   def moduleDeps = Seq(
     spatialsearch_dotty.build.spatialsearch,
@@ -30,7 +30,7 @@ object particlefilter extends ScalaModule /* with PublishModule */ {
     )
   )
 
-  object test extends Tests with TestModule.Utest with TestModule.ScalaTest {
+  object test extends ScalaTests with TestModule.Utest with TestModule.ScalaTest {
     override def ivyDeps =
       Agg(
         ivy"com.lihaoyi::utest::0.7.10",
