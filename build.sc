@@ -6,7 +6,7 @@ import $file.mhpf.build
 import $file.ancestry.build
 
 object particlefilter extends ScalaModule with ScalaJSModule /* with PublishModule */ {
-  def scalaVersion = "3.3.2"
+  def scalaVersion = "3.3.3"
 
   def moduleDeps = Seq(
     spatialsearch_dotty.build.spatialsearch,
