@@ -6,9 +6,11 @@ import matchers._
 import com.scilari.math.StatsUtils._
 import com.scilari.geometry.models.{Float2, AABB}
 import com.scilari.particlefilter.mhpf.MHPF
+import com.scilari.particlefilter.DataUtils.{positionsToControls, controlsToPositions}
 import scala.collection.mutable.ArraySeq
 import scala.collection.mutable.ArrayBuffer
 import org.scalacheck.Test
+import com.scilari.geometry.utils.Float2Utils.linSpace
 
 class CloudTests extends AnyFlatSpec with should.Matchers {
 
@@ -20,6 +22,26 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       parent.history ++= history
       parent
     }
+  }
+
+  "Points" should "map to controls and back" in {
+    val c1 = Float2(0, -5)
+    val c2 = Float2(50, 0)
+    val c3 = Float2(50, 30)
+    val c4 = Float2(0, 30)
+
+    val e1 = linSpace(c1, c2, 40).dropRight(1)
+    val e2 = linSpace(c2, c3, 40).dropRight(1)
+    val e3 = linSpace(c3, c4, 40).dropRight(1)
+    val e4 = linSpace(c4, c1, 40)
+    val traj1 = e1 ++ e2 ++ e3 ++ e4
+    val (initPose, controls) = positionsToControls(traj1.toSeq)
+    val traj2 = controlsToPositions(controls, initPose)
+
+    val diff = traj1.zip(traj2).map { (p1, p2) => math.abs(p1.distance(p2)) }
+    info(diff.mkString(" "))
+    info(s"Total diff: ${diff.sum}")
+    assert(diff.sum < 0.0001f)
   }
 
   "ParticleFilter" should "move diagonally" in {
