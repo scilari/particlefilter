@@ -1,11 +1,12 @@
 import mill._, scalalib._
 import mill.scalalib.publish._
+import mill.scalajslib.ScalaJSModule
 
 import $file.spatialsearch_dotty.build
 import $file.mhpf.build
 import $file.ancestry.build
 
-object particlefilter extends ScalaModule with ScalaJSModule /* with PublishModule */ {
+trait BaseModule extends ScalaModule {
   def scalaVersion = "3.3.3"
 
   def moduleDeps = Seq(
@@ -14,9 +15,7 @@ object particlefilter extends ScalaModule with ScalaJSModule /* with PublishModu
     ancestry.build.ancestry
   )
 
-  override def ivyDeps = Agg(
-    ivy"com.lihaoyi::os-lib:0.7.8"
-  )
+  override def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.0")
 
   def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
@@ -29,14 +28,14 @@ object particlefilter extends ScalaModule with ScalaJSModule /* with PublishModu
       Developer("scilari", "Ilari Vallivaara", "https://github.com/scilari")
     )
   )
+}
 
-  object test extends ScalaTests with TestModule.Utest with TestModule.ScalaTest {
-    override def ivyDeps =
-      Agg(
-        ivy"com.lihaoyi::utest::0.7.10",
-        ivy"org.scalatest::scalatest:3.2.10",
-        ivy"org.scalacheck::scalacheck:1.15.4"
-      )
-
+object particlefilter extends BaseModule {
+  object test extends ScalaModule with ScalaTests with TestModule.Utest with TestModule.ScalaTest {
+    override def ivyDeps = Agg(
+      ivy"com.lihaoyi::utest::0.7.10",
+      ivy"org.scalatest::scalatest:3.2.18",
+      ivy"org.scalacheck::scalacheck:1.15.4"
+    )
   }
 }
