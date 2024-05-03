@@ -13,14 +13,14 @@ object DataUtils {
       fallBack
   }
 
-  /**
-    * Computes relative poses from a set of 2D points. These can be interpreted
-    * as piecewise controls, where straight translation is followed by a rotation.
-    * Handles duplicate points. Computes also the initial absolute pose, not included
-    * in the controls.
+  /** Computes relative poses from a set of 2D points. These can be interpreted as piecewise
+    * controls, where straight translation is followed by a rotation. Handles duplicate points.
+    * Computes also the initial absolute pose, not included in the controls.
     *
-    * @param ps 2D points
-    * @return (absolute initial pose, controls)
+    * @param ps
+    *   2D points
+    * @return
+    *   (absolute initial pose, controls)
     */
   def positionsToControls(ps: Seq[Float2]): (Pose, Seq[Pose]) = {
     val paddedPs = ps.head +: ps :+ ps.last
