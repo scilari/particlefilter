@@ -13,6 +13,7 @@ import org.scalacheck.Test
 import com.scilari.geometry.utils.Float2Utils.linSpace
 
 class CloudTests extends AnyFlatSpec with should.Matchers {
+  val VISUALIZE = false
 
   class TestParticle(pose: Pose = Pose.zero) extends Particle[TestParticle](pose) {
     val history = ArrayBuffer[Pose]()
@@ -119,21 +120,19 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       cloud.resampleIfNeeded()
 
       // Thread.sleep(100)
-      DataUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
+      // DataUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
 
       val leaf = cloud.particleAncestryTree.leaves(0)
       val ancestors = leaf.ancestors
       val history: ArrayBuffer[Pose] = ancestors.map { _.data }.reduce(Particle.merge).history
 
-      DataUtils.pointsToFile(history.map { _.position }.toIndexedSeq, "history.csv")
+      // DataUtils.pointsToFile(history.map { _.position }.toIndexedSeq, "history.csv")
 
       val meanPose = CloudStats.meanPose(cloud)
-      println(s"Correct: ${currentPosition}")
-      println(s"Cloud: $meanPose")
       meanPose.position
     }
 
-    DataUtils.pointsToFile(estimates, "points.csv")
+    // DataUtils.pointsToFile(estimates, "points.csv")
 
   }
 
@@ -175,9 +174,6 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       meanPose.position
 
     }
-
-    DataUtils.pointsToFile(estimates.toIndexedSeq, "points.csv")
-
   }
 
 }
