@@ -3,12 +3,11 @@ package com.scilari.particlefilter
 import com.scilari.math.ArrayUtils
 import com.scilari.math.FloatMath._
 
-class Angle(var value: Float) {
+final case class Angle(value: Float) {
   def +(that: Angle): Angle = Angle(value + that.value)
   def -(that: Angle): Angle = Angle(value - that.value)
   def *(c: Float): Angle = Angle(c * value)
   def normalized: Float = Angle.normalizeAngle(value)
-  def normalize(): Unit = { value = Angle.normalizeAngle(value) }
 }
 
 object Angle {
