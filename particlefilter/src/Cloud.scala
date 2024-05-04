@@ -25,11 +25,11 @@ class Cloud[P <: Particle[P]](
   def move(control: Pose): Unit = {
     particles.foreach { p =>
       val scaledControl = Pose(control.position * p.scale, control.a)
-      p.pose.move(motionModel.sampleControl(scaledControl))
+      p.pose = p.pose.moved(motionModel.sampleControl(scaledControl))
     }
   }
 
-  def moveTo(pose: Pose): Unit = particles.foreach { _.pose.moveTo(pose) }
+  def moveTo(pose: Pose): Unit = particles.foreach { _.pose = pose }
 
   def weights: Array[Double] = mhpf.weights.toArray
 

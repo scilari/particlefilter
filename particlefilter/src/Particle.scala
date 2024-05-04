@@ -3,7 +3,7 @@ package com.scilari.particlefilter
 import scala.collection.mutable.ArrayBuffer
 
 abstract class Particle[T](
-    val pose: Pose = Pose.zero,
+    var pose: Pose,
     var scale: Float = 1.0f
 ) {
   Self: T =>
