@@ -12,7 +12,6 @@ import doodle.java2d.effect.*
 import com.scilari.math.StatsUtils._
 import com.scilari.geometry.models.{Float2, AABB}
 import com.scilari.particlefilter.mhpf.MHPF
-import com.scilari.particlefilter.DataUtils.{positionsToControls, controlsToPositions}
 import scala.collection.mutable.ArraySeq
 import scala.collection.mutable.ArrayBuffer
 import org.scalacheck.Test
@@ -34,26 +33,6 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     }
   }
 
-  "Points" should "map to controls and back" in {
-    val c1 = Float2(0, -5)
-    val c2 = Float2(50, 0)
-    val c3 = Float2(50, 30)
-    val c4 = Float2(0, 30)
-
-    val e1 = linSpace(c1, c2, 40).dropRight(1)
-    val e2 = linSpace(c2, c3, 40).dropRight(1)
-    val e3 = linSpace(c3, c4, 40).dropRight(1)
-    val e4 = linSpace(c4, c1, 40)
-    val traj1 = e1 ++ e2 ++ e3 ++ e4
-    val (initPose, controls) = positionsToControls(traj1.toSeq)
-    val traj2 = controlsToPositions(controls, initPose)
-
-    val diff = traj1.zip(traj2).map { (p1, p2) => math.abs(p1.distance(p2)) }
-    // info(diff.mkString(" "))
-    info(s"Total diff: ${diff.sum}")
-    assert(diff.sum < 0.001f)
-  }
-
   "ParticleFilter" should "move diagonally" in {
     val motionModel = MotionModel(0.1, 0.1)
     val cloud = Cloud(10, motionModel, rootParticle = TestParticle())
@@ -72,7 +51,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     assert(math.abs(mean(ys) - 1) < 0.1)
   }
 
-  it should "move a circle" in {
+  it should "move in a circle" in {
     val motionModel = MotionModel(0.01, 0.01)
     val cloud = Cloud(10, motionModel, rootParticle = TestParticle())
 
@@ -124,9 +103,9 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       rootParticle = TestParticle()
     )
 
-    val (initialPose, controls) = DataUtils.positionsToControls(sinData)
+    val (initialPose, controls) = TrajectoryUtils.positionsToControls(sinData)
     val noisyControls = controls.map { _.rotated((0.15 * Random.nextGaussian()).toFloat) }
-    val noisyPoints = DataUtils.controlsToPositions(noisyControls, initialPose)
+    val noisyPoints = TrajectoryUtils.controlsToPositions(noisyControls, initialPose)
 
     cloud.moveTo(initialPose)
 
@@ -199,7 +178,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     val particleCount = 1000
     val bb = AABB.fromMinMax(0, -4, 100, 4)
 
-    DataUtils.pointsToFile(bb.corners.toIndexedSeq, "ground_truth.csv")
+    FileUtils.pointsToFile(bb.corners.toIndexedSeq, "ground_truth.csv")
 
     val controlPoints = (0 until 100).map { i => Float2(i.toFloat, 0) }
 
@@ -216,7 +195,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     val motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f)
     val cloud = Cloud[TestParticle](particleCount, motionModel, mhpf, rootParticle = TestParticle())
 
-    val (initialPose, controls) = DataUtils.positionsToControls(controlPoints.toSeq)
+    val (initialPose, controls) = TrajectoryUtils.positionsToControls(controlPoints.toSeq)
     cloud.moveTo(initialPose)
 
     val estimates = for (control <- controls) yield {
@@ -225,7 +204,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       cloud.resampleIfNeeded()
 
       // Thread.sleep(100)
-      DataUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
+      FileUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
 
       val meanPose = CloudStats.meanPose(cloud)
       println(s"Correct: ${currentPosition}")
