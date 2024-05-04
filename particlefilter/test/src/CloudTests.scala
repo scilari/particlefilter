@@ -120,8 +120,11 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
 
       // Thread.sleep(100)
       // DataUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
-      val meanPose = CloudStats.meanPose(cloud)
-      assert(meanPose.position.distance(data) < 10.0)
+      assert(
+        CloudStats.meanPose(cloud).position.distance(data) < 10.0,
+        "The cloud should track the path"
+      )
+      assert(cloud.particleAncestryTree.depth < 25, "The ancestry tree should stay shallow")
     }
 
     // DataUtils.pointsToFile(estimates, "points.csv")
