@@ -14,6 +14,7 @@ Uses the `mill` build tool (https://mill-build.com/mill/Intro_to_Mill.html). Run
 ```
 ./mill particlefilter.test
 ```
+For visual output, use `VISUALIZE` flag in CloudTests.
 ## Setting up and updating submodules:
 ```
 git submodule update --init --recursive

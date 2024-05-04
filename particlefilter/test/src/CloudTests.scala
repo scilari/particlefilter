@@ -3,6 +3,12 @@ import org.scalatest._
 import flatspec._
 import matchers._
 
+import doodle.java2d.*
+import cats.effect.unsafe.implicits.global
+import doodle.syntax.all.*
+import doodle.core.*
+import doodle.java2d.effect.*
+
 import com.scilari.math.StatsUtils._
 import com.scilari.geometry.models.{Float2, AABB}
 import com.scilari.particlefilter.mhpf.MHPF
@@ -11,14 +17,17 @@ import scala.collection.mutable.ArraySeq
 import scala.collection.mutable.ArrayBuffer
 import org.scalacheck.Test
 import com.scilari.geometry.utils.Float2Utils.linSpace
+import scala.util.Random
 
 class CloudTests extends AnyFlatSpec with should.Matchers {
   val VISUALIZE = false
 
-  class TestParticle(pose: Pose = Pose.zero) extends Particle[TestParticle](pose) {
+  class TestParticle(p: Pose = Pose.zero) extends Particle[TestParticle](p) {
     val history = ArrayBuffer[Pose]()
 
-    override def breed = TestParticle(pose.copy)
+    override def breed = {
+      TestParticle(pose)
+    }
     override def merge(parent: TestParticle) = {
       parent.history ++= history
       parent
@@ -40,9 +49,9 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     val traj2 = controlsToPositions(controls, initPose)
 
     val diff = traj1.zip(traj2).map { (p1, p2) => math.abs(p1.distance(p2)) }
-    info(diff.mkString(" "))
+    // info(diff.mkString(" "))
     info(s"Total diff: ${diff.sum}")
-    assert(diff.sum < 0.0001f)
+    assert(diff.sum < 0.001f)
   }
 
   "ParticleFilter" should "move diagonally" in {
@@ -79,20 +88,26 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
   }
 
   it should "be able to produce sine shape using measurements" in {
+
+    val canvas = Frame.default
+      .withSize(1000, 400)
+      .withCenterAtOrigin
+      .withClearToBackground
+      .canvas()
+      .unsafeRunSync()
+
     val particleCount = 1000
     val sinDataX = (0 until 100)
     val sinData = sinDataX
       .map { _.toDouble }
       .map { i => Float2(i, 10 * math.sin(i / 10.0)) }
 
-    DataUtils.pointsToFile(sinData, "ground_truth.csv")
-
-    val controlPoints = sinDataX.map { i => Float2(i.toFloat, 0) }
+    // DataUtils.pointsToFile(sinData, "ground_truth.csv")
 
     var currentPosition: Float2 = Float2.zero
     def likelihood(p: Particle[_]): Double = {
       val d2 = p.pose.position.distanceSq(currentPosition)
-      val dev = 1.0
+      val dev = 2.5
       -0.5 * d2 / (dev * dev)
     }
 
@@ -109,31 +124,75 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       rootParticle = TestParticle()
     )
 
-    val (initialPose, controls) = DataUtils.positionsToControls(controlPoints.toSeq)
+    val (initialPose, controls) = DataUtils.positionsToControls(sinData)
+    val noisyControls = controls.map { _.rotated((0.15 * Random.nextGaussian()).toFloat) }
+    val noisyPoints = DataUtils.controlsToPositions(noisyControls, initialPose)
+
     cloud.moveTo(initialPose)
 
-    val estimates = for ((data, control) <- (sinData zip controls)) yield {
+    val estimates = for ((data, control) <- (sinData zip noisyControls)) yield {
       currentPosition = data
-      cloud.particles.foreach { p => p.history += p.pose.copy }
+      cloud.particles.foreach { p => p.history += p.pose }
       cloud.updateWeights()
       cloud.move(control)
       cloud.resampleIfNeeded()
 
+      if (VISUALIZE) visualize(canvas, cloud, sinData, noisyPoints)
+
       // Thread.sleep(100)
       // DataUtils.pointsToFile(cloud.particles.map { _.pose.position }, "particles.csv")
-
-      val leaf = cloud.particleAncestryTree.leaves(0)
-      val ancestors = leaf.ancestors
-      val history: ArrayBuffer[Pose] = ancestors.map { _.data }.reduce(Particle.merge).history
-
-      // DataUtils.pointsToFile(history.map { _.position }.toIndexedSeq, "history.csv")
-
       val meanPose = CloudStats.meanPose(cloud)
-      meanPose.position
+      assert(meanPose.position.distance(data) < 10.0)
     }
 
     // DataUtils.pointsToFile(estimates, "points.csv")
 
+  }
+
+  def visualize(
+      canvas: Canvas,
+      cloud: Cloud[TestParticle],
+      gt: Seq[Float2],
+      pdr: Seq[Float2]
+  ): Unit = {
+
+    val offsetX = AABB.fromPoints(gt).width / 2
+    val scale = 9.5
+    def transform(p: Float2) = (scale * (p - offsetX * Float2.unitX))
+    val mean = transform(CloudStats.meanPose(cloud).position)
+    var picture = circle(40).at(mean.x, mean.y)
+
+    val transparentBlack = Color.rgba(100, 100, 100, 1)
+    val pathStyle = circle(4).fillColor(Color.orangeRed)
+    val historyStyle = circle(4).fillColor(Color.green)
+    val pdrStyle = circle(3).noStroke.fillColor(Color.black)
+    val particleStyle = circle(3).noStroke.fillColor(transparentBlack)
+
+    for (p <- cloud.particles.take(1000)) {
+      val p2 = transform(p.pose.position)
+      picture = picture.on(particleStyle.at(p2.x, p2.y).asInstanceOf)
+    }
+
+    for (p <- gt) {
+      val p2 = transform(p)
+      picture = picture.on(pathStyle.at(p2.x, p2.y).asInstanceOf)
+    }
+
+    val best = cloud.particleAncestryTree.leaves(0)
+    val history = best.ancestors.map { _.data.history }.flatten
+
+    for (p <- history) {
+      val p2 = transform(p.position)
+      picture = picture.on(historyStyle.at(p2.x, p2.y).asInstanceOf)
+    }
+
+    for (p <- pdr) {
+      val p2 = transform(p.position)
+      picture = picture.on(pdrStyle.at(p2.x, p2.y).asInstanceOf)
+    }
+
+    picture.drawWithCanvas(canvas)
+    Thread.sleep(500)
   }
 
   ignore should "stay inside box" in {

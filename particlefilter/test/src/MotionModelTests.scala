@@ -41,9 +41,9 @@ object MotionModelTests extends TestSuite {
       val control = Pose(Float2.unitX * 0.1f, 0f)
 
       val poses = (0 until sampleCount).map { _ =>
-        var currentPose = initialPose.copy
+        var currentPose = initialPose
         (0 until 10).foreach { _ =>
-          currentPose.move(motionModel.sampleControl(control))
+          currentPose = currentPose.moved(motionModel.sampleControl(control))
         }
         currentPose
       }
@@ -57,7 +57,7 @@ object MotionModelTests extends TestSuite {
     }
 
     test("MotionModel should work with single rotating step") {
-      val control = Pose(Float2.zero, TwoPi)
+      val control = Pose.unnormalized(0, 0, TwoPi)
 
       val poses = (0 until sampleCount).map { _ =>
         initialPose + motionModel.sampleControl(control)
@@ -75,9 +75,9 @@ object MotionModelTests extends TestSuite {
       val control = Pose(Float2.zero, 0.1f * TwoPi)
 
       val poses = (0 until sampleCount).map { _ =>
-        var currentPose = initialPose.copy
+        var currentPose = initialPose
         (0 until 10).foreach { _ =>
-          currentPose.move(motionModel.sampleControl(control))
+          currentPose = currentPose.moved(motionModel.sampleControl(control))
         }
         currentPose
       }
