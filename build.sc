@@ -35,7 +35,8 @@ object particlefilter extends BaseModule {
     override def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.7.10",
       ivy"org.scalatest::scalatest:3.2.18",
-      ivy"org.scalacheck::scalacheck:1.15.4"
+      ivy"org.scalacheck::scalacheck:1.15.4",
+      ivy"org.creativescala::doodle:0.22.0"
     )
   }
 }
