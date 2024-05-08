@@ -6,7 +6,7 @@
 Implements a PF that uses 
   * Monty Hall Particle Filter machinery for robust, convenient, and flexible likelihood computation (https://github.com/scilari/mhpf)
   * Ancestry tree as compact storage for particle histories, such as maps (https://github.com/scilari/ancestry)
-  * QuadTree spatial search library for some geometric primitives and use-case convenience (https://github.com/scilari/spatialsearch_dotty) 
+  * QuadTree spatial search library for some geometric primitives and use-case convenience (https://github.com/scilari/spatialsearch) 
 
 
 ## Building and running tests
