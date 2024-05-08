@@ -1,6 +1,5 @@
 import mill._, scalalib._
 import mill.scalalib.publish._
-import mill.scalajslib.ScalaJSModule
 
 import $file.spatialsearch.build
 import $file.mhpf.build
