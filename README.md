@@ -10,7 +10,11 @@ Implements a PF that uses
 
 
 ## Building and running tests
-Uses the `mill` build tool (https://mill-build.com/mill/Intro_to_Mill.html). Run the tests with:
+Uses the `mill` build tool (https://mill-build.com/mill/Intro_to_Mill.html). Install `millw` wrapper with:
+```
+curl -L https://raw.githubusercontent.com/lefou/millw/0.4.11/millw > mill && chmod +x mill
+``` 
+Run the tests with:
 ```
 ./mill particlefilter.test
 ```

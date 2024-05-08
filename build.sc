@@ -2,7 +2,7 @@ import mill._, scalalib._
 import mill.scalalib.publish._
 import mill.scalajslib.ScalaJSModule
 
-import $file.spatialsearch_dotty.build
+import $file.spatialsearch.build
 import $file.mhpf.build
 import $file.ancestry.build
 
@@ -10,7 +10,7 @@ trait BaseModule extends ScalaModule {
   def scalaVersion = "3.3.3"
 
   def moduleDeps = Seq(
-    spatialsearch_dotty.build.spatialsearch,
+    spatialsearch.build.spatialsearch,
     mhpf.build.mhpf,
     ancestry.build.ancestry
   )
