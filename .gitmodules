@@ -1,9 +1,9 @@
 [submodule "mhpf"]
 	path = mhpf
 	url = https://github.com/scilari/mhpf
-[submodule "spatialsearch_dotty"]
-	path = spatialsearch_dotty
-	url = https://github.com/scilari/spatialsearch_dotty
 [submodule "ancestry"]
 	path = ancestry
 	url = https://github.com/scilari/ancestry
+[submodule "spatialsearch"]
+	path = spatialsearch
+	url = git@github.com:scilari/spatialsearch.git
