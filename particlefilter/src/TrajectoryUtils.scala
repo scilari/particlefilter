@@ -34,12 +34,10 @@ object TrajectoryUtils {
       .sliding(3, 1)
       .map { case Seq(p0, p1, p2) =>
         val d = p0.distance(p1)
-        if (d > 0f) {
-          val angleNext = angleBetween(p1, p2, angleCurr)
-          val control = Pose(d, 0, Angle.angleDiff(angleNext, angleCurr))
-          angleCurr = angleNext
-          control
-        } else Pose.zero
+        val angleNext = angleBetween(p1, p2, angleCurr)
+        val control = Pose(d, 0, Angle.angleDiff(angleNext, angleCurr))
+        angleCurr = angleNext
+        control
       }
       .toSeq
 
