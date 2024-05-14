@@ -63,7 +63,7 @@ class TrajectoryTests extends AnyFlatSpec with should.Matchers {
     assert(math.abs(totalShapeLength - totalControlLength) < 0.001f)
 
     val diff = traj1.zip(traj2).map { (p1, p2) => math.abs(p1.distance(p2)) }
-    info(diff.mkString(" "))
+    // info(diff.mkString(" "))
     info(s"Total diff: ${diff.sum}")
     assert(diff.sum < 0.001f)
   }
