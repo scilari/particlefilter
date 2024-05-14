@@ -28,14 +28,17 @@ object TrajectoryUtils {
     val initialHeading =
       ps.tail.find(_ != ps.head).map { p => (p - ps.head).direction }.getOrElse(0f)
 
+    var angleCurr = initialHeading
+
     val controls = paddedPs
       .sliding(3, 1)
       .map { case Seq(p0, p1, p2) =>
         val d = p0.distance(p1)
         if (d > 0f) {
-          val angleCurr = angleBetween(p0, p1)
           val angleNext = angleBetween(p1, p2, angleCurr)
-          Pose(d, 0, Angle.angleDiff(angleNext, angleCurr))
+          val control = Pose(d, 0, Angle.angleDiff(angleNext, angleCurr))
+          angleCurr = angleNext
+          control
         } else Pose.zero
       }
       .toSeq
