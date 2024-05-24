@@ -97,10 +97,9 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       IndexedSeq((likelihood(_), (p: Leaf[TestParticle]) => true))
     )
 
-    val motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f)
     val cloud = Cloud[TestParticle](
       particleCount,
-      motionModel,
+      motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f),
       mhpf,
       rootParticle = TestParticle()
     )
