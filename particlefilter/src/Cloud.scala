@@ -4,11 +4,12 @@ import com.scilari.particlefilter.mhpf.MHPF
 import com.scilari.ancestry.AncestryTree
 import scala.collection.mutable.ArrayBuffer
 import com.scilari.ancestry.core.Tree
+import com.scilari.ancestry.core.Leaf
 
 class Cloud[P <: Particle[P]](
     val n: Int,
     val motionModel: MotionModel,
-    val mhpf: MHPF[P] = null,
+    val mhpf: MHPF[Leaf[P]],
     val rootParticle: P,
     resampleRatio: Double = 0.5
 ) {
@@ -20,7 +21,9 @@ class Cloud[P <: Particle[P]](
     List.fill(n)(rootParticle.breed)
   )
 
-  def particles = particleAncestryTree.leavesCached.view.map { _.data }
+  def particles = particleAncestryTree.leavesCached.map { _.data }
+
+  def leaves = particleAncestryTree.leavesCached
 
   def move(control: Pose): Unit = {
     particles.foreach { p =>
@@ -34,7 +37,7 @@ class Cloud[P <: Particle[P]](
   def weights: Array[Double] = mhpf.weights.toArray
 
   def updateWeights(): Unit = {
-    mhpf.computeWeights(particles.toIndexedSeq)
+    mhpf.computeWeights(leaves)
     updateCounter += 1
   }
 

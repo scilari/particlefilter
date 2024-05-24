@@ -17,6 +17,7 @@ import scala.collection.mutable.ArrayBuffer
 import org.scalacheck.Test
 import com.scilari.geometry.utils.Float2Utils.linSpace
 import scala.util.Random
+import com.scilari.ancestry.core.Leaf
 
 class CloudTests extends AnyFlatSpec with should.Matchers {
   val VISUALIZE = false
@@ -35,7 +36,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
 
   "ParticleFilter" should "move diagonally" in {
     val motionModel = MotionModel(0.1, 0.1)
-    val cloud = Cloud(10, motionModel, rootParticle = TestParticle())
+    val cloud = Cloud(10, motionModel, mhpf = null, rootParticle = TestParticle())
 
     for (t <- 0 until 5) {
       cloud.move(Pose(1f, 0.2f, 0.0f * com.scilari.math.FloatMath.TwoPi))
@@ -53,7 +54,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
 
   it should "move in a circle" in {
     val motionModel = MotionModel(0.01, 0.01)
-    val cloud = Cloud(10, motionModel, rootParticle = TestParticle())
+    val cloud = Cloud(10, motionModel, mhpf = null, rootParticle = TestParticle())
 
     for (t <- 0 until 10) {
       cloud.move(Pose(1f, 0f, 0.1f * com.scilari.math.FloatMath.TwoPi))
@@ -84,15 +85,16 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     // DataUtils.pointsToFile(sinData, "ground_truth.csv")
 
     var currentPosition: Float2 = Float2.zero
-    def likelihood(p: Particle[_]): Double = {
+    def likelihood(leaf: Leaf[TestParticle]): Double = {
+      val p = leaf.data
       val d2 = p.pose.position.distanceSq(currentPosition)
       val dev = 2.5
       -0.5 * d2 / (dev * dev)
     }
 
-    val mhpf = MHPF[TestParticle](
+    val mhpf = MHPF[Leaf[TestParticle]](
       particleCount,
-      IndexedSeq((likelihood(_), (p: TestParticle) => true))
+      IndexedSeq((likelihood(_), (p: Leaf[TestParticle]) => true))
     )
 
     val motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f)
@@ -186,13 +188,13 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
     val controlPoints = (0 until 100).map { i => Float2(i.toFloat, 0) }
 
     var currentPosition: Float2 = Float2.zero
-    def likelihood(p: TestParticle): Double = {
-      if (bb.contains(p.pose.position)) 0 else -20
+    def likelihood(leaf: Leaf[TestParticle]): Double = {
+      if (bb.contains(leaf.data.pose.position)) 0 else -20
     }
 
-    val mhpf = MHPF[TestParticle](
+    val mhpf = MHPF[Leaf[TestParticle]](
       particleCount,
-      IndexedSeq((likelihood(_), (p: Particle[_]) => true))
+      IndexedSeq((likelihood(_), (p: Leaf[TestParticle]) => true))
     )
 
     val motionModel = MotionModel(0.2f, 0.2f, 0.2f, 0.5f)
