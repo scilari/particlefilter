@@ -53,3 +53,30 @@ case class MotionModel(
   }
 
 }
+
+object MotionModel {
+  def robot = MotionModel(
+    translationDev = 0.015f,
+    rotationDev = 0.1f,
+    translationCrossDev = 0.001f,
+    translationToRotationDev = 0.01f * Pi,
+    rotationToTranslationDev = 0f
+  )
+
+  def human = MotionModel(
+    translationDev = 0.2f,
+    rotationDev = 0.1f,
+    translationCrossDev = 0.001f,
+    translationToRotationDev = 0.005f * Pi,
+    rotationToTranslationDev = 0.2f / TwoPi
+  )
+
+  def humanSLAM = MotionModel(
+    translationDev = 0.02f,
+    rotationDev = 0.01f,
+    translationCrossDev = 0.001f,
+    translationToRotationDev = 0.005f * Pi,
+    rotationToTranslationDev = 0.5f / TwoPi
+  )
+
+}
