@@ -1,19 +1,32 @@
 package com.scilari.particlefilter
 
 import scala.collection.mutable.ArrayBuffer
+import com.scilari.geometry.models.Position
+import com.scilari.geometry.models.Float2
 
 abstract class Particle[T](
     var pose: Pose,
     var scale: Float = 1.0f
-) {
+) extends Position {
   Self: T =>
   val children = ArrayBuffer[T]()
 
-  // Tell how to make copy for the next generation
+  /** How to make copy for the next generation
+    *
+    * @return
+    *   Copy for the next generation
+    */
   def breed: T
 
-  // How to merge particle's data to its parent
+  /** How to merge particle's data to its parent
+    *
+    * @param parent
+    * @return
+    *   Parent merged with the child
+    */
   def merge(parent: T): T
+
+  def position: Float2 = pose.position
 
   override def toString: String = s"Particle at ${pose.toString}"
 }
