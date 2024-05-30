@@ -20,7 +20,7 @@ import scala.util.Random
 import com.scilari.ancestry.core.Leaf
 
 class CloudTests extends AnyFlatSpec with should.Matchers {
-  val VISUALIZE = false
+  val VISUALIZE = true
 
   class TestParticle(p: Pose = Pose.zero) extends Particle[TestParticle](p) {
     val history = ArrayBuffer[Pose]()
@@ -29,8 +29,8 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
       TestParticle(pose)
     }
     override def merge(parent: TestParticle) = {
-      parent.history ++= history
-      parent
+      this.history ++= parent.history
+      this
     }
   }
 
