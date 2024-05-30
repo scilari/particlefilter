@@ -38,6 +38,6 @@ object Particle {
     children
   }
 
-  def merge[P <: Particle[P]](child: P, parent: P): P = child.merge(parent)
+  def merge[P <: Particle[P]](parent: P, child: P): P = child.merge(parent)
 
 }
