@@ -6,7 +6,7 @@ import $file.mhpf.build
 import $file.ancestry.build
 
 trait BaseModule extends ScalaModule {
-  def scalaVersion = "3.3.3"
+  def scalaVersion = "3.3.5"
 
   def moduleDeps = Seq(
     spatialsearch.build.spatialsearch,
