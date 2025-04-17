@@ -125,7 +125,7 @@ class CloudTests extends AnyFlatSpec with should.Matchers {
         CloudStats.meanPose(cloud).position.distance(data) < 10.0,
         "The cloud should track the path"
       )
-      assert(cloud.particleAncestryTree.depth < 25, "The ancestry tree should stay shallow")
+      assert(cloud.particleAncestryTree.height < 25, "The ancestry tree should stay shallow")
     }
 
     // DataUtils.pointsToFile(estimates, "points.csv")
