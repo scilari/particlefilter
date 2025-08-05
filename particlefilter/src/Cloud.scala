@@ -11,7 +11,8 @@ class Cloud[P <: Particle[P]](
     val motionModel: MotionModel,
     val mhpf: MHPF[Leaf[P]],
     val rootParticle: P,
-    resampleRatio: Double = 0.5
+    val resampleIndexer: (Cloud[P]) => Array[Int] = Resampling.default[P],
+    val resampleRatio: Double = 0.5
 ) {
 
   var updateCounter = 0
@@ -53,7 +54,7 @@ class Cloud[P <: Particle[P]](
   }
 
   def resample(weights: Array[Double]) = {
-    val indices = Resampling.resampleIndices(weights)
+    val indices = resampleIndexer(this)
     val particles = this.particles
     indices.foreach { i => particles(i).children += particles(i).breed }
 

@@ -4,6 +4,10 @@ import scala.collection.mutable.ArrayBuffer
 
 object Resampling {
 
+  def default[P <: Particle[P]](cloud: Cloud[P]): Array[Int] = {
+    resampleIndices(cloud.weights, weightSum = cloud.weights.sum, copyCount = cloud.n)
+  }
+
   // Standard systematic resampling
   def resampleIndices(
       weights: Array[Double],
